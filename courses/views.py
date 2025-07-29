@@ -2,9 +2,14 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from .forms import RegisterForm, LoginForm, CourseForm
-from .models import Course
+from forms import RegisterForm, LoginForm, CourseForm
+from models import Course
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
 
+@login_required
+def dashboard(request):
+    return render(request, 'courses/dashboard.html')
 def register_view(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
