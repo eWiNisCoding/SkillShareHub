@@ -1,15 +1,15 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, authenticate
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from forms import RegisterForm, LoginForm, CourseForm
-from models import Course
-from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
+from .forms import RegisterForm, LoginForm, CourseForm
+from .models import Course
 
 @login_required
 def dashboard(request):
     return render(request, 'courses/dashboard.html')
+
 def register_view(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
@@ -23,12 +23,13 @@ def register_view(request):
 
 def login_view(request):
     if request.method == 'POST':
-        form = Login_view(data=request.POST)
+        form = LoginForm(request, data=request.POST)  # Fixed: Added request parameter
         if form.is_valid():
             user = form.get_user()
             login(request, user)
             return redirect('course_list')
-    form = LoginForm()
+    else:
+        form = LoginForm()
     return render(request, 'courses/login.html', {'form': form})
 
 def logout_view(request):
@@ -39,36 +40,33 @@ class CourseListView(ListView):
     model = Course
     template_name = 'courses/course_list.html'
     context_object_name = 'courses'
+    ordering = ['-created_at']
 
 class CourseCreateView(LoginRequiredMixin, CreateView):
     model = Course
     form_class = CourseForm
     template_name = 'courses/course_form.html'
+    success_url = '/'
 
     def form_valid(self, form):
         form.instance.instructor = self.request.user
         return super().form_valid(form)
 
-    def get_success_url(self):
-        return '/'
-
 class CourseUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Course
     form_class = CourseForm
     template_name = 'courses/course_form.html'
+    success_url = '/'
 
     def test_func(self):
-        return self.request.user == self.get_object().instructor
-
-    def get_success_url(self):
-        return '/'
+        course = self.get_object()
+        return self.request.user == course.instructor
 
 class CourseDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Course
     template_name = 'courses/course_confirm_delete.html'
+    success_url = '/'
 
     def test_func(self):
-        return self.request.user == self.get_object().instructor
-
-    def get_success_url(self):
-        return '/'
+        course = self.get_object()
+        return self.request.user == course.instructor

@@ -1,0 +1,29 @@
+{% extends "courses/base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h2>Your Courses</h2>
+        <div class="list-group">
+            {% for course in user.courses_created.all %}
+                <a href="{{ course.get_absolute_url }}" class="list-group-item list-group-item-action">
+                    {{ course.title }}
+                </a>
+            {% empty %}
+                <p>You haven't created any courses yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Quick Actions</h5>
+                <a href="{% url 'course_create' %}" class="btn btn-primary mb-2">Create New Course</a>
+                <a href="{% url 'course_list' %}" class="btn btn-secondary">Browse Courses</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
